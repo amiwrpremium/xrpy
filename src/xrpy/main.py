@@ -111,9 +111,9 @@ def set_trust_line(client: JsonRpcClient, from_wallet: Wallet, currency: str, va
     return tx_response
 
 
-def create_offer(client: JsonRpcClient, from_wallet: Wallet, taker_gets_xrp: int,
-                 taker_pays_currency: str, taker_pays_value: str, taker_pays_issuer: str,
-                 side: str) -> Response:
+def create_offer_buy(client: JsonRpcClient, from_wallet: Wallet, taker_gets_xrp: Union[float, int],
+                     taker_pays_currency: str, taker_pays_value: str, taker_pays_issuer: str,
+                     _type: str) -> Response:
     """
     Place Order
 
@@ -135,8 +135,8 @@ def create_offer(client: JsonRpcClient, from_wallet: Wallet, taker_gets_xrp: int
     :param taker_pays_issuer: Issuer
     :type taker_pays_issuer: str
 
-    :param side: Offer side (buy or sell)
-    :type side: str
+    :param _type: Offer type (market or limit)
+    :type _type: str
 
     :return: Result of order placing attempt
     :rtype: Response
@@ -162,7 +162,67 @@ def create_offer(client: JsonRpcClient, from_wallet: Wallet, taker_gets_xrp: int
             value=taker_pays_value,
             issuer=taker_pays_issuer,
         ),
-        flags=OfferCreateFlag.TF_SELL if side.lower() == 'sell' else None
+        flags=OfferCreateFlag.TF_SELL if _type.lower() == 'market' else 0
+    )
+
+    my_tx_payment_signed = safe_sign_and_autofill_transaction(offer_create, from_wallet, client)
+    tx_response = send_reliable_submission(my_tx_payment_signed, client)
+
+    return tx_response
+
+
+def create_offer_sell(client: JsonRpcClient, from_wallet: Wallet, taker_pays_xrp: Union[float, int],
+                      taker_gets_currency: str, taker_gets_value: str, taker_gets_issuer: str,
+                      _type: str) -> Response:
+    """
+    Place Order
+
+    :param client: xrpl Client
+    :type client: JsonRpcClient
+
+    :param from_wallet: XRPL Wallet
+    :type from_wallet: Wallet
+
+    :param taker_pays_xrp: amount in xrp for taker pays
+    :type taker_pays_xrp: int
+
+    :param taker_gets_currency: Currency
+    :type taker_gets_currency: str
+
+    :param taker_gets_value: Value
+    :type taker_gets_value: str
+
+    :param taker_gets_issuer: Issuer
+    :type taker_gets_issuer: str
+
+    :param _type: Offer type (market or limit)
+    :type _type: str
+
+    :return: Result of order placing attempt
+    :rtype: Response
+
+    ex)
+        offer_create = OfferCreate(
+            account='rfL6jD4a9coALoR35cM9kLGGThrohuKjai',
+            taker_gets=xrp_to_drops(2),
+            taker_pays=IssuedCurrencyAmount(
+                currency='VGB',
+                value='20',
+                issuer='rhcyBrowwApgNonehKBj8Po5z4gTyRknaU',
+            ),
+            # flags=OfferCreateFlag.TF_SELL
+        )
+    """
+
+    offer_create = OfferCreate(
+        account=from_wallet.classic_address,
+        taker_gets=IssuedCurrencyAmount(
+            currency=taker_gets_currency,
+            value=taker_gets_value,
+            issuer=taker_gets_issuer,
+        ),
+        taker_pays=xrp_to_drops(taker_pays_xrp),
+        flags=OfferCreateFlag.TF_SELL if _type.lower() == 'market' else 0
     )
 
     my_tx_payment_signed = safe_sign_and_autofill_transaction(offer_create, from_wallet, client)
