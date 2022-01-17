@@ -1,6 +1,8 @@
 from typing import Union
 
 
+from xrpl.account import get_account_info as xrpl_get_account_info
+
 from xrpl.clients import JsonRpcClient
 from xrpl.wallet import generate_faucet_wallet, Wallet
 
@@ -257,3 +259,20 @@ def cancel_offer(client: JsonRpcClient, from_wallet: Wallet, sequence: int) -> R
     tx_response = send_reliable_submission(my_tx_payment_signed, client)
 
     return tx_response
+
+
+def get_account_info(client: JsonRpcClient, address: str) -> Response:
+    """
+    Get Account Info
+
+    :param client: xrpl Client
+    :type client: JsonRpcClient
+
+    :param address: Wallet address
+    :type address: str
+
+    :return: Account info
+    :rtype: Response
+    """
+    _ = xrpl_get_account_info(address, client)
+    return _
