@@ -11,6 +11,7 @@ from xrpl.utils import xrp_to_drops
 from xrpl.models.transactions import Payment, TrustSet, TrustSetFlag, OfferCreate, OfferCancel, OfferCreateFlag
 from xrpl.models.amounts import IssuedCurrencyAmount
 from xrpl.models.response import Response
+from xrpl.models.requests import AccountLines
 
 from xrpl.transaction import safe_sign_and_autofill_transaction, send_reliable_submission
 
@@ -51,16 +52,16 @@ def send_transaction(client: JsonRpcClient, from_wallet: Wallet, amount: Union[i
     :rtype: Response
     """
 
-    tx_payment = Payment(
+    payment = Payment(
         account=from_wallet.classic_address,
         amount=xrp_to_drops(amount),
         destination=destination,
     )
 
-    tx_payment_signed = safe_sign_and_autofill_transaction(tx_payment, from_wallet, client)
-    tx_response = send_reliable_submission(tx_payment_signed, client)
+    payment_signed = safe_sign_and_autofill_transaction(payment, from_wallet, client)
+    response = send_reliable_submission(payment_signed, client)
 
-    return tx_response
+    return response
 
 
 def set_trust_line(client: JsonRpcClient, from_wallet: Wallet, currency: str, value: str, issuer: str) -> Response:
@@ -107,10 +108,10 @@ def set_trust_line(client: JsonRpcClient, from_wallet: Wallet, currency: str, va
         flags=TrustSetFlag.TF_SET_NO_RIPPLE
     )
 
-    my_tx_payment_signed = safe_sign_and_autofill_transaction(trust_set, from_wallet, client)
-    tx_response = send_reliable_submission(my_tx_payment_signed, client)
+    trust_set_signed = safe_sign_and_autofill_transaction(trust_set, from_wallet, client)
+    response = send_reliable_submission(trust_set_signed, client)
 
-    return tx_response
+    return response
 
 
 def create_offer_buy(client: JsonRpcClient, from_wallet: Wallet, taker_gets_xrp: Union[float, int],
@@ -167,10 +168,10 @@ def create_offer_buy(client: JsonRpcClient, from_wallet: Wallet, taker_gets_xrp:
         flags=OfferCreateFlag.TF_SELL if _type.lower() == 'market' else 0
     )
 
-    my_tx_payment_signed = safe_sign_and_autofill_transaction(offer_create, from_wallet, client)
-    tx_response = send_reliable_submission(my_tx_payment_signed, client)
+    offer_create_signed = safe_sign_and_autofill_transaction(offer_create, from_wallet, client)
+    response = send_reliable_submission(offer_create_signed, client)
 
-    return tx_response
+    return response
 
 
 def create_offer_sell(client: JsonRpcClient, from_wallet: Wallet, taker_pays_xrp: Union[float, int],
@@ -227,10 +228,10 @@ def create_offer_sell(client: JsonRpcClient, from_wallet: Wallet, taker_pays_xrp
         flags=OfferCreateFlag.TF_SELL if _type.lower() == 'market' else 0
     )
 
-    my_tx_payment_signed = safe_sign_and_autofill_transaction(offer_create, from_wallet, client)
-    tx_response = send_reliable_submission(my_tx_payment_signed, client)
+    offer_create_signed = safe_sign_and_autofill_transaction(offer_create, from_wallet, client)
+    response = send_reliable_submission(offer_create_signed, client)
 
-    return tx_response
+    return response
 
 
 def cancel_offer(client: JsonRpcClient, from_wallet: Wallet, sequence: int) -> Response:
@@ -255,10 +256,10 @@ def cancel_offer(client: JsonRpcClient, from_wallet: Wallet, sequence: int) -> R
         offer_sequence=sequence
     )
 
-    my_tx_payment_signed = safe_sign_and_autofill_transaction(offer_create, from_wallet, client)
-    tx_response = send_reliable_submission(my_tx_payment_signed, client)
+    offer_create_signed = safe_sign_and_autofill_transaction(offer_create, from_wallet, client)
+    response = send_reliable_submission(offer_create_signed, client)
 
-    return tx_response
+    return response
 
 
 def get_account_info(client: JsonRpcClient, address: str) -> Response:
@@ -274,5 +275,29 @@ def get_account_info(client: JsonRpcClient, address: str) -> Response:
     :return: Account info
     :rtype: Response
     """
-    _ = xrpl_get_account_info(address, client)
-    return _
+
+    acc_info = xrpl_get_account_info(address, client)
+
+    return acc_info
+
+
+def get_account_trustlines(client: JsonRpcClient, address: str) -> Response:
+    """
+    Get Account Trustlines
+
+    :param client: xrpl Client
+    :type client: JsonRpcClient
+
+    :param address: Wallet address
+    :type address: str
+
+    :return: Account Trustlines
+    :rtype: Response
+    """
+
+    account_lines = AccountLines(
+        account=address,
+    )
+    account_lines_req = client.request(account_lines)
+
+    return account_lines_req
