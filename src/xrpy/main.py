@@ -13,6 +13,9 @@ from xrpl.models.amounts import IssuedCurrencyAmount
 from xrpl.models.response import Response
 from xrpl.models.requests import AccountLines
 
+from xrpl.models.requests import BookOffers
+from xrpl.models.currencies import XRP
+
 from xrpl.transaction import safe_sign_and_autofill_transaction, send_reliable_submission
 
 
@@ -301,3 +304,77 @@ def get_account_trustlines(client: JsonRpcClient, address: str) -> Response:
     account_lines_req = client.request(account_lines)
 
     return account_lines_req
+
+
+def order_book_sell(client: JsonRpcClient, from_wallet: Wallet,
+                    taker_pays_currency: Union[str, XRP], taker_pays_issuer: str) -> Response:
+    """
+    Get Orderbook
+
+    :param client: xrpl Client
+    :type client: JsonRpcClient
+
+    :param from_wallet: XRPL Wallet
+    :type from_wallet: Wallet
+
+    :param taker_pays_currency: Currency
+    :type taker_pays_currency: str
+
+    :param taker_pays_issuer: Issuer
+    :type taker_pays_issuer: str
+
+    :return: Result of order placing attempt
+    :rtype: Response
+
+    """
+
+    book_offers = BookOffers(
+        taker=from_wallet.classic_address,
+        taker_gets=IssuedCurrencyAmount(
+            currency=taker_pays_currency,
+            value='0',
+            issuer=taker_pays_issuer,
+        ),
+        taker_pays=XRP(),
+    )
+
+    book_offers_req = client.request(book_offers)
+
+    return book_offers_req
+
+
+def order_book_buy(client: JsonRpcClient, from_wallet: Wallet,
+                   taker_pays_currency: Union[str, XRP], taker_pays_issuer: str ) -> Response:
+    """
+    Get Orderbook
+
+    :param client: xrpl Client
+    :type client: JsonRpcClient
+
+    :param from_wallet: XRPL Wallet
+    :type from_wallet: Wallet
+
+    :param taker_pays_currency: Currency
+    :type taker_pays_currency: str
+
+    :param taker_pays_issuer: Issuer
+    :type taker_pays_issuer: str
+
+    :return: Result of order placing attempt
+    :rtype: Response
+
+    """
+
+    book_offers = BookOffers(
+        taker=from_wallet.classic_address,
+        taker_gets=XRP(),
+        taker_pays=IssuedCurrencyAmount(
+            currency=taker_pays_currency,
+            value='0',
+            issuer=taker_pays_issuer,
+        ),
+    )
+
+    book_offers_req = client.request(book_offers)
+
+    return book_offers_req
