@@ -8,6 +8,7 @@ from .main import get_account_info
 from .main import order_book_buy
 from .main import order_book_sell
 from .main import get_account_trustlines
+from .main import get_account_offers
 from .main import XRP
 from .main import JsonRpcClient
 from .main import Wallet
@@ -23,6 +24,7 @@ __all__ = [
     'order_book_buy',
     'order_book_sell',
     'get_account_trustlines',
+    'get_account_offers',
     'cancel_offer',
     'XRP',
     'JsonRpcClient',
@@ -30,6 +32,6 @@ __all__ = [
 ]
 
 
-__version__ = "0.0.5"
+__version__ = "0.0.6"
 __author__ = "amiwrpremium"
 __reason__ = 'OK'

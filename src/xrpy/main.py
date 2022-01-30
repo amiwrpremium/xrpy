@@ -11,9 +11,8 @@ from xrpl.utils import xrp_to_drops
 from xrpl.models.transactions import Payment, TrustSet, TrustSetFlag, OfferCreate, OfferCancel, OfferCreateFlag
 from xrpl.models.amounts import IssuedCurrencyAmount
 from xrpl.models.response import Response
-from xrpl.models.requests import AccountLines
 
-from xrpl.models.requests import BookOffers
+from xrpl.models.requests import BookOffers, AccountLines, AccountOffers
 from xrpl.models.currencies import XRP
 
 from xrpl.transaction import safe_sign_and_autofill_transaction, send_reliable_submission
@@ -304,6 +303,28 @@ def get_account_trustlines(client: JsonRpcClient, address: str) -> Response:
     account_lines_req = client.request(account_lines)
 
     return account_lines_req
+
+
+def get_account_offers(client: JsonRpcClient, address: str) -> Response:
+    """
+    Get Account Trustlines
+
+    :param client: xrpl Client
+    :type client: JsonRpcClient
+
+    :param address: Wallet address
+    :type address: str
+
+    :return: Account Trustlines
+    :rtype: Response
+    """
+
+    account_offers = AccountOffers(
+        account=address,
+    )
+    account_offers_req = client.request(account_offers)
+
+    return account_offers_req
 
 
 def order_book_sell(client: JsonRpcClient, from_wallet: Wallet,
