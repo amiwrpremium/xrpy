@@ -3,7 +3,7 @@ from typing import Union
 
 from xrpl.account import get_account_info as xrpl_get_account_info
 
-from xrpl.clients import JsonRpcClient
+from xrpl.clients import JsonRpcClient, WebsocketClient
 from xrpl.wallet import generate_faucet_wallet, Wallet
 
 from xrpl.utils import xrp_to_drops
@@ -23,7 +23,7 @@ def create_wallet(client: JsonRpcClient) -> Wallet:
     Create a wallet
 
     :param client: xrpl Client
-    :type client: JsonRpcClient
+    :type client: JsonRpcClient, WebsocketClient
 
     :return: XRPL Wallet
     :rtype: Wallet
@@ -33,13 +33,13 @@ def create_wallet(client: JsonRpcClient) -> Wallet:
     return _wallet
 
 
-def send_transaction(client: JsonRpcClient, from_wallet: Wallet, amount: Union[int, float],
+def send_transaction(client: Union[JsonRpcClient, WebsocketClient], from_wallet: Wallet, amount: Union[int, float],
                      destination: str) -> Response:
     """
     Send a transaction
 
     :param client: xrpl Client
-    :type client: JsonRpcClient
+    :type client: JsonRpcClient, WebsocketClient
 
     :param from_wallet: XRPL Wallet
     :type from_wallet: Wallet
@@ -66,12 +66,12 @@ def send_transaction(client: JsonRpcClient, from_wallet: Wallet, amount: Union[i
     return response
 
 
-def set_trust_line(client: JsonRpcClient, from_wallet: Wallet, currency: str, value: str, issuer: str) -> Response:
+def set_trust_line(client: Union[JsonRpcClient, WebsocketClient], from_wallet: Wallet, currency: str, value: str, issuer: str) -> Response:
     """
     Create a trust line
 
     :param client: xrpl Client
-    :type client: JsonRpcClient
+    :type client: JsonRpcClient, WebsocketClient
 
     :param from_wallet: XRPL Wallet
     :type from_wallet: Wallet
@@ -116,14 +116,14 @@ def set_trust_line(client: JsonRpcClient, from_wallet: Wallet, currency: str, va
     return response
 
 
-def create_offer_buy(client: JsonRpcClient, from_wallet: Wallet, taker_gets_xrp: Union[float, int],
-                     taker_pays_currency: str, taker_pays_value: str, taker_pays_issuer: str,
-                     _type: str) -> Response:
+def create_offer_buy(client: Union[JsonRpcClient, WebsocketClient], from_wallet: Wallet,
+                     taker_gets_xrp: Union[float, int],
+                     taker_pays_currency: str, taker_pays_value: str, taker_pays_issuer: str, _type: str) -> Response:
     """
     Place Order
 
     :param client: xrpl Client
-    :type client: JsonRpcClient
+    :type client: JsonRpcClient, WebsocketClient
 
     :param from_wallet: XRPL Wallet
     :type from_wallet: Wallet
@@ -176,14 +176,15 @@ def create_offer_buy(client: JsonRpcClient, from_wallet: Wallet, taker_gets_xrp:
     return response
 
 
-def create_offer_sell(client: JsonRpcClient, from_wallet: Wallet, taker_pays_xrp: Union[float, int],
+def create_offer_sell(client: Union[JsonRpcClient, WebsocketClient], from_wallet: Wallet,
+                      taker_pays_xrp: Union[float, int],
                       taker_gets_currency: str, taker_gets_value: str, taker_gets_issuer: str,
                       _type: str) -> Response:
     """
     Place Order
 
     :param client: xrpl Client
-    :type client: JsonRpcClient
+    :type client: JsonRpcClient, WebsocketClient
 
     :param from_wallet: XRPL Wallet
     :type from_wallet: Wallet
@@ -236,12 +237,12 @@ def create_offer_sell(client: JsonRpcClient, from_wallet: Wallet, taker_pays_xrp
     return response
 
 
-def cancel_offer(client: JsonRpcClient, from_wallet: Wallet, sequence: int) -> Response:
+def cancel_offer(client: Union[JsonRpcClient, WebsocketClient], from_wallet: Wallet, sequence: int) -> Response:
     """
     Cancel order
 
     :param client: xrpl Client
-    :type client: JsonRpcClient
+    :type client: JsonRpcClient, WebsocketClient
 
     :param from_wallet: XRPL Wallet
     :type from_wallet: Wallet
@@ -264,12 +265,12 @@ def cancel_offer(client: JsonRpcClient, from_wallet: Wallet, sequence: int) -> R
     return response
 
 
-def get_account_info(client: JsonRpcClient, address: str) -> Response:
+def get_account_info(client: Union[JsonRpcClient, WebsocketClient], address: str) -> Response:
     """
     Get Account Info
 
     :param client: xrpl Client
-    :type client: JsonRpcClient
+    :type client: JsonRpcClient, WebsocketClient
 
     :param address: Wallet address
     :type address: str
@@ -283,12 +284,12 @@ def get_account_info(client: JsonRpcClient, address: str) -> Response:
     return acc_info
 
 
-def get_account_trustlines(client: JsonRpcClient, address: str) -> Response:
+def get_account_trustlines(client: Union[JsonRpcClient, WebsocketClient], address: str) -> Response:
     """
     Get Account Trustlines
 
     :param client: xrpl Client
-    :type client: JsonRpcClient
+    :type client: JsonRpcClient, WebsocketClient
 
     :param address: Wallet address
     :type address: str
@@ -305,12 +306,12 @@ def get_account_trustlines(client: JsonRpcClient, address: str) -> Response:
     return account_lines_req
 
 
-def get_account_offers(client: JsonRpcClient, address: str) -> Response:
+def get_account_offers(client: Union[JsonRpcClient, WebsocketClient], address: str) -> Response:
     """
     Get Account Trustlines
 
     :param client: xrpl Client
-    :type client: JsonRpcClient
+    :type client: JsonRpcClient, WebsocketClient
 
     :param address: Wallet address
     :type address: str
@@ -327,13 +328,13 @@ def get_account_offers(client: JsonRpcClient, address: str) -> Response:
     return account_offers_req
 
 
-def order_book_sell(client: JsonRpcClient, from_wallet: Wallet,
+def order_book_sell(client: Union[JsonRpcClient, WebsocketClient], from_wallet: Wallet,
                     taker_pays_currency: Union[str, XRP], taker_pays_issuer: str) -> Response:
     """
     Get Orderbook
 
     :param client: xrpl Client
-    :type client: JsonRpcClient
+    :type client: JsonRpcClient, WebsocketClient
 
     :param from_wallet: XRPL Wallet
     :type from_wallet: Wallet
@@ -364,13 +365,13 @@ def order_book_sell(client: JsonRpcClient, from_wallet: Wallet,
     return book_offers_req
 
 
-def order_book_buy(client: JsonRpcClient, from_wallet: Wallet,
+def order_book_buy(client: Union[JsonRpcClient, WebsocketClient], from_wallet: Wallet,
                    taker_pays_currency: Union[str, XRP], taker_pays_issuer: str ) -> Response:
     """
     Get Orderbook
 
     :param client: xrpl Client
-    :type client: JsonRpcClient
+    :type client: JsonRpcClient, WebsocketClient
 
     :param from_wallet: XRPL Wallet
     :type from_wallet: Wallet
