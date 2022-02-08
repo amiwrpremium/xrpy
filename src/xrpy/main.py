@@ -66,7 +66,8 @@ def send_transaction(client: Union[JsonRpcClient, WebsocketClient], from_wallet:
     return response
 
 
-def set_trust_line(client: Union[JsonRpcClient, WebsocketClient], from_wallet: Wallet, currency: str, value: str, issuer: str) -> Response:
+def set_trust_line(client: Union[JsonRpcClient, WebsocketClient], from_wallet: Wallet,
+                   currency: str, value: str, issuer: str) -> Response:
     """
     Create a trust line
 
@@ -328,7 +329,7 @@ def get_account_offers(client: Union[JsonRpcClient, WebsocketClient], address: s
     return account_offers_req
 
 
-def order_book_sell(client: Union[JsonRpcClient, WebsocketClient], from_wallet: Wallet,
+def order_book_sell(client: Union[JsonRpcClient, WebsocketClient], classic_address: str,
                     taker_pays_currency: Union[str, XRP], taker_pays_issuer: str) -> Response:
     """
     Get Orderbook
@@ -336,8 +337,8 @@ def order_book_sell(client: Union[JsonRpcClient, WebsocketClient], from_wallet: 
     :param client: xrpl Client
     :type client: JsonRpcClient, WebsocketClient
 
-    :param from_wallet: XRPL Wallet
-    :type from_wallet: Wallet
+    :param classic_address: Wallet address
+    :type classic_address: str
 
     :param taker_pays_currency: Currency
     :type taker_pays_currency: str
@@ -351,7 +352,7 @@ def order_book_sell(client: Union[JsonRpcClient, WebsocketClient], from_wallet: 
     """
 
     book_offers = BookOffers(
-        taker=from_wallet.classic_address,
+        taker=classic_address,
         taker_gets=IssuedCurrencyAmount(
             currency=taker_pays_currency,
             value='0',
@@ -365,16 +366,16 @@ def order_book_sell(client: Union[JsonRpcClient, WebsocketClient], from_wallet: 
     return book_offers_req
 
 
-def order_book_buy(client: Union[JsonRpcClient, WebsocketClient], from_wallet: Wallet,
-                   taker_pays_currency: Union[str, XRP], taker_pays_issuer: str ) -> Response:
+def order_book_buy(client: Union[JsonRpcClient, WebsocketClient], classic_address: str,
+                   taker_pays_currency: Union[str, XRP], taker_pays_issuer: str) -> Response:
     """
     Get Orderbook
 
     :param client: xrpl Client
     :type client: JsonRpcClient, WebsocketClient
 
-    :param from_wallet: XRPL Wallet
-    :type from_wallet: Wallet
+    :param classic_address: Wallet address
+    :type classic_address: str
 
     :param taker_pays_currency: Currency
     :type taker_pays_currency: str
@@ -388,7 +389,7 @@ def order_book_buy(client: Union[JsonRpcClient, WebsocketClient], from_wallet: W
     """
 
     book_offers = BookOffers(
-        taker=from_wallet.classic_address,
+        taker=classic_address,
         taker_gets=XRP(),
         taker_pays=IssuedCurrencyAmount(
             currency=taker_pays_currency,

@@ -13,6 +13,8 @@ from .main import XRP
 from .main import JsonRpcClient
 from .main import Wallet
 
+from . import constants
+
 
 __all__ = [
     'create_wallet',
@@ -32,6 +34,6 @@ __all__ = [
 ]
 
 
-__version__ = "0.0.7"
+__version__ = "0.0.8"
 __author__ = "amiwrpremium"
 __reason__ = 'OK'
