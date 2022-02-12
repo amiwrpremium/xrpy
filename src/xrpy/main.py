@@ -401,3 +401,30 @@ def order_book_buy(client: Union[JsonRpcClient, WebsocketClient], classic_addres
     book_offers_req = client.request(book_offers)
 
     return book_offers_req
+
+
+def get_reserved_balance(client: Union[JsonRpcClient, WebsocketClient], address: str,
+                         include_wallet_reserve: bool = False) -> int:
+    """
+    Get Reserved Balance
+
+    :param client: xrpl Client
+    :type client: JsonRpcClient, WebsocketClient
+
+    :param address: Wallet address
+    :type address: str
+
+    :param include_wallet_reserve: Include Wallet Reserve (+10 for wallet reserve) (default: False)
+    :type include_wallet_reserve: bool
+
+    :return: Reserved Balance
+    :rtype: Response
+    """
+
+    trust_lines = get_account_trustlines(client, address)
+
+    result = 2 * len(trust_lines.result.get('lines', 0))
+    if include_wallet_reserve is True:
+        result += 10
+
+    return result
