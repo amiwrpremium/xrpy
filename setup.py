@@ -3,7 +3,7 @@ from distutils.core import setup
 setup(
     name='xrpy',
     packages=['xrpy'],
-    version='0.0.9',
+    version='0.1.0',
     license='MIT',
     description='Easier XRPL functions',
     author='amiwrpremium',

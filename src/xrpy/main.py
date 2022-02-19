@@ -428,3 +428,32 @@ def get_reserved_balance(client: Union[JsonRpcClient, WebsocketClient], address:
         result += 10
 
     return result
+
+
+def get_balance(client: Union[JsonRpcClient, WebsocketClient], address: str,
+                include_wallet_reserve: bool = True) -> Union[float, int]:
+    """
+    Get Balance in drops
+
+    :param client: xrpl Client
+    :type client: JsonRpcClient, WebsocketClient
+
+    :param address: Wallet address
+    :type address: str
+
+    :param include_wallet_reserve: Include Wallet Reserve (+10 for wallet reserve) (default: False)
+    :type include_wallet_reserve: bool
+
+    :return: Balance in drops
+    :rtype: Response
+    """
+
+    account_info = xrpl_get_account_info(address, client)
+
+    result = account_info.result.get('account_data', {}).get('Balance', 0) or 0
+
+    if include_wallet_reserve is False:
+        reserved = get_reserved_balance(client, address, True)
+        result -= reserved
+
+    return result
