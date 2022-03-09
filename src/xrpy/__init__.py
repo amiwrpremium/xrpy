@@ -1,21 +1,25 @@
-from .main import create_wallet
-from .main import send_transaction
-from .main import set_trust_line
-from .main import create_offer_buy
-from .main import create_offer_sell
-from .main import cancel_offer
-from .main import get_account_info
-from .main import order_book_buy
-from .main import order_book_sell
-from .main import get_balance
-from .main import get_account_trustlines
-from .main import get_reserved_balance
-from .main import get_account_offers
-from .main import XRP
-from .main import JsonRpcClient
-from .main import Wallet
+from .deprecated import create_wallet
+from .deprecated import send_transaction
+from .deprecated import set_trust_line
+from .deprecated import create_offer_buy
+from .deprecated import create_offer_sell
+from .deprecated import cancel_offer
+from .deprecated import get_account_info
+from .deprecated import order_book_buy
+from .deprecated import order_book_sell
+from .deprecated import get_balance
+from .deprecated import get_account_trustlines
+from .deprecated import get_reserved_balance
+from .deprecated import get_account_offers
 
 from . import constants
+
+from .main import XRPY
+from .main import JsonRpcClient
+from .main import WebsocketClient
+from .main import XRP
+from .main import Wallet
+from .main import __version__ as main_version
 
 
 __all__ = [
@@ -33,11 +37,13 @@ __all__ = [
     'get_account_offers',
     'cancel_offer',
     'XRP',
+    'XRPY',
     'JsonRpcClient',
+    'WebsocketClient',
     'Wallet',
 ]
 
 
-__version__ = "0.1.0"
+__version__ = main_version
 __author__ = "amiwrpremium"
 __reason__ = 'OK'

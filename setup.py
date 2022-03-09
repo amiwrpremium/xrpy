@@ -3,7 +3,7 @@ from distutils.core import setup
 setup(
     name='xrpy',
     packages=['xrpy'],
-    version='0.1.0',
+    version='0.2.0',
     license='MIT',
     description='Easier XRPL functions',
     author='amiwrpremium',
@@ -12,6 +12,7 @@ setup(
     keywords=['xrp', 'xrpl', 'ledger', 'blockchain', 'ripple', 'rippled', 'SDK'],
     install_requires=[
         'xrpl-py',
+        'deprecation',
     ],
     classifiers=[
         'Development Status :: 3 - Alpha',
