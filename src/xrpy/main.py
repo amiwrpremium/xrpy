@@ -1,4 +1,7 @@
-from typing import Union, Optional
+from concurrent.futures import ThreadPoolExecutor
+
+
+from typing import Union, Optional, Dict, List
 
 
 from xrpl.account import get_account_info as xrpl_get_account_info
@@ -19,7 +22,7 @@ from xrpl.models.currencies import XRP
 from xrpl.transaction import safe_sign_and_autofill_transaction, send_reliable_submission
 
 
-__version__ = '0.2.0'
+__version__ = '0.2.1'
 
 
 __all__ = [
@@ -36,7 +39,7 @@ class XRPY:
     XRPY is a wrapper for the XRPL API.
     """
 
-    def __init__(self, client: Optional[Union[JsonRpcClient, WebsocketClient, str]] = None):
+    def __init__(self, client: Optional[Union[JsonRpcClient, WebsocketClient, str]] = None, max_workers: int = None):
         """
         XRPY is a wrapper for the XRPL API.
 
@@ -60,6 +63,19 @@ class XRPY:
             raise Exception(f'Invalid client type: {type(client)}')
 
         self._client = client
+        self.max_workers = max_workers
+
+    def set_max_workers(self, max_workers: int) -> None:
+        """
+        Set the maximum number of workers for the thread pool.
+
+        :param max_workers: Maximum number of workers
+        :type max_workers: int
+
+        :return: None
+        """
+
+        self.max_workers = max_workers
 
     def set_client(self, client: Union[JsonRpcClient, WebsocketClient]) -> None:
         """
@@ -318,6 +334,158 @@ class XRPY:
 
         response = self._sign_and_send(offer_create, from_wallet)
         return response
+
+    def delete_account(self, from_wallet: Wallet, destination: str, destination_tag: Optional[int] = None) -> Response:
+        """
+        Delete XRP Wallet
+
+        :param from_wallet: wallet you want to delete
+        :type from_wallet: Wallet
+
+        :param destination: destination address
+        :type destination: str
+
+        :param destination_tag: destination tag
+        :type destination_tag: int
+
+        :return: Result of account deletion attempt
+        :rtype: Response
+        """
+
+        account_delete = AccountDelete(
+            account=from_wallet.classic_address,
+            destination=destination,
+            destination_tag=destination_tag
+        )
+
+        response = self._sign_and_send(account_delete, from_wallet)
+        return response
+
+    def __sell_trustline_yolo(self, from_wallet: Wallet, trustline: Dict) -> Union[Response, None]:
+        """
+        Sell trustline
+
+        :param from_wallet: XRPL Wallet
+        :type from_wallet: Wallet
+
+        :param trustline: Trustline
+        :type trustline: Trustline
+
+        :return: Result of trustline selling attempt
+        :rtype: Response
+        """
+
+        if trustline.get('balance') != '0':
+            _ = self.create_sell_offer(
+                from_wallet,
+                0.00001,
+                trustline.get('currency'),
+                trustline.get('balance'),
+                trustline.get('account'),
+                _type='market'
+            )
+            return _
+        return None
+
+    def advanced_delete_account(self, from_wallet: Wallet, destination: str, destination_tag: Optional[int] = None,
+                                threaded: Optional[bool] = False, max_workers: int = None) -> \
+            Dict[str, List[Response]]:
+        """
+        Advanced Delete XRP Wallet.
+        1) Cancel all offers
+        2) Sell All Tokens
+        3) Remove All Trustlines
+        4) Delete Account
+
+        :param from_wallet: wallet you want to delete
+        :type from_wallet: Wallet
+
+        :param destination: destination address
+        :type destination: str
+
+        :param destination_tag: destination tag
+        :type destination_tag: int
+
+        :param threaded: if True, will run all operations in separate threads
+        :type threaded: bool
+
+        :param max_workers: max number of threads
+        :type max_workers: int
+
+        :return: Result of account deletion attempt
+        :rtype: Response
+        """
+
+        thread_pool = ThreadPoolExecutor(max_workers=max_workers)
+
+        __data__ = {
+            'CancelOffers': [],
+            'SellAllTokens': [],
+            'RemoveTrustlines': [],
+            'DeleteAccount': [],
+        }
+
+        # Cancel all offers
+        all_offers_data = self.get_account_offers(from_wallet.classic_address)
+        offers = all_offers_data.result.get('offers', [])
+
+        if threaded is True:
+            __threads__ = [
+                thread_pool.submit(self.cancel_offer, from_wallet, offer['seq']) for offer in offers
+            ]
+            for thread in __threads__:
+                __data__['CancelOffers'].append(thread.result())
+        else:
+            for offer in offers:
+                _ = self.cancel_offer(from_wallet, offer.get('seq'))
+                __data__['CancelOffers'].append(_)
+
+        # Sell all tokens
+        all_account_trustlines = self.get_account_trustlines(from_wallet.classic_address)
+        trustlines = all_account_trustlines.result.get('lines', [])
+
+        if threaded is True:
+            __threads__ = [
+                thread_pool.submit(self.__sell_trustline_yolo, from_wallet, trustline) for trustline in trustlines
+            ]
+            for thread in __threads__:
+                __data__['SellAllTokens'].append(thread.result())
+
+        else:
+            for trustline in trustlines:
+                _ = self.__sell_trustline_yolo(from_wallet, trustline)
+                __data__['SellAllTokens'].append(_)
+
+        # Remove all trustlines
+        if threaded is True:
+            __threads__ = [
+                thread_pool.submit(
+                    self.set_trust_line,
+                    from_wallet,
+                    trustline.get('currency'),
+                    '0',
+                    trustline.get('account')
+                )
+                for trustline in trustlines
+            ]
+            for thread in __threads__:
+                __data__['RemoveTrustlines'].append(thread.result())
+
+        else:
+            for trustline in trustlines:
+                _ = self.set_trust_line(
+                    from_wallet,
+                    trustline.get('currency'),
+                    '0',
+                    trustline.get('account')
+                )
+                __data__['RemoveTrustlines'].append(_)
+
+        # Delete account
+        _ = self.delete_account(from_wallet, destination, destination_tag)
+        __data__['DeleteAccount'] = _
+
+        return __data__
 
     def get_account_info(self, address: str) -> Response:
         """
